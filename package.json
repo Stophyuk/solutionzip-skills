@@ -1,0 +1,9 @@
+{
+  "name": "solutionzip-skills",
+  "private": true,
+  "description": "카드뉴스 · 숏폼을 HTML로 만들고 찍는 클로드 스킬",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.57.0"
+  }
+}

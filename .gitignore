@@ -1,3 +1,6 @@
 node_modules/
 out/
+shots/
+anti-slop-out/
+.ai-before-after/
 .DS_Store

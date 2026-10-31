@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# dc <app> <compose args...> — one wrapper so the project name, directory, env file and compose file are never ambiguous.
+#
+#   dc app1 ps
+#   dc app1 up -d --wait app
+#   dc app1 exec -T db psql -U postgres -d postgres
+#
+# Installed to /usr/local/bin/dc by ops/prep.sh (a copy — run prep again, or `sudo install`, after editing this file).
+# The compose file is /srv/<app>/repo/<deploy dir>/docker-compose.yml, the deploy dir being the second column of
+# /srv/ops/ops/apps.conf. An app missing there is refused, so a typo never starts a stray project.
+set -euo pipefail
+app=${1:?usage: dc <app> <compose args>}; shift
+dir=$(awk -v a="$app" '$1 == a { print $2; exit }' /srv/ops/ops/apps.conf 2>/dev/null || true)
+[ -n "$dir" ] || { echo "dc: unknown app '$app' — add a line to /srv/ops/ops/apps.conf" >&2; exit 2; }
+exec docker compose --project-name "$app" --project-directory "/srv/$app" --env-file "/srv/$app/.env" \
+  -f "/srv/$app/repo/$dir/docker-compose.yml" "$@"

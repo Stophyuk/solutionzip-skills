@@ -1,0 +1,10 @@
+{"id":"s01","input":"주문한 물건이 언제 도착하나요?","label":"question"}
+{"id":"s02","input":"어제 받은 컵이 깨져 있었어요. 너무 속상하네요","label":"complaint"}
+{"id":"s03","input":"환불 받고 싶어요. 주문번호는 <주문번호>입니다","label":"request"}
+{"id":"s04","input":"영업시간이 어떻게 되나요","label":"question"}
+{"id":"s05","input":"배송지를 바꿔 주세요","label":"request"}
+{"id":"s06","input":"잘 받았습니다. 포장이 꼼꼼해서 좋았어요","label":"other"}
+{"id":"s07","input":"3일째 답이 없네요. 확인 부탁드립니다","label":"complaint"}
+{"id":"s08","input":"사이즈 교환 되나요?","label":"question"}
+{"id":"s09","input":"결제가 두 번 됐어요. 하나 취소해 주세요","label":"request"}
+{"id":"s10","input":"ㅎㅎ","label":"other"}

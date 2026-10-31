@@ -1,0 +1,15 @@
+# /etc/cron.d/app1 — the app's scheduled routes (what a vercel.json "crons" list used to do), called on 127.0.0.1.
+#   sudo install -m 0644 /srv/ops/ops/cron.d/app1 /etc/cron.d/app1
+#   (cron skips files in /etc/cron.d whose names contain a dot — so the installed name is just the app name)
+# Times are in the HOST time zone — convert from UTC by hand. Ubuntu's cron ignores CRON_TZ: a file carrying
+# CRON_TZ=UTC ran nine hours off, and its failures went only to a log file nobody read.
+# Every line goes through cron-call.sh: journal tag cron-app1, a mail on anything but 2xx. No '%' in these lines.
+
+# nightly housekeeping (expired links, sessions)
+41 3 * * *      root /srv/ops/ops/cron-call.sh app1 /api/cron/sweep 120
+# a slow job that must never stack on itself: flock -n skips a run while the last one is still going
+*/10 * * * *    root flock -n /run/lock/app1-sync /srv/ops/ops/cron-call.sh app1 /api/cron/sync 300
+# a job that must not overlap a deploy (the container swap would cut it): wait for the deploy lock up to 30 min.
+# As the deploy user (fs.protected_regular=2 keeps root out of that user's /tmp/deploy.lock), with passwordless sudo
+# (Ubuntu cloud images have it). `flock -E 75` marks "the lock never came", which mails at once.
+0 10 * * *      ubuntu flock -E 75 -w 1800 /tmp/deploy.lock sudo -n /srv/ops/ops/cron-call.sh app1 /api/cron/daily 900 || [ $? -ne 75 ] || sudo -n /srv/ops/ops/alert.sh app1-daily-lock "[app1] 일일 작업이 배포 잠금을 30분 기다리다 돌지 못함" "손으로 다시 부르세요: sudo /srv/ops/ops/cron-call.sh app1 /api/cron/daily 900"

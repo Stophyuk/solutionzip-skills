@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/kakao-notify/notify.mjs\" start" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/kakao-notify/notify.mjs\" stop" }] }
+    ],
+    "Notification": [
+      { "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/kakao-notify/notify.mjs\" wait" }] }
+    ]
+  }
+}

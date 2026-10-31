@@ -1,7 +1,7 @@
 {
   "name": "solutionzip-skills",
   "private": true,
-  "description": "카드뉴스 · 숏폼을 HTML로 만들고 찍는 클로드 스킬",
+  "description": "카드뉴스 · 숏폼 · 앱 점검 · 카피 검사 · 전 페이지 캡처 · 1인 개발 틀 — 문제해결집이 쓰는 클로드 스킬",
   "license": "MIT",
   "dependencies": {
     "playwright": "^1.57.0"

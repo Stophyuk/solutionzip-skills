@@ -1,0 +1,153 @@
+# Caddyfile — every host on this box. Put live ONLY with ops/caddy-apply.sh (validate → dated copy → in-place write → reload).
+# Hosts whose DNS does not point here yet stay commented out: Caddy would keep retrying their certificates.
+# Container names below (app1-app, app1-rest …) are the `edge` network aliases set in each app's docker-compose.yml.
+{
+	email ops@example.com
+	# First rehearsal: use the staging CA (no rate limits, untrusted certificates), then remove this line and apply again.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# ── shared snippets ──────────────────────────────────────────
+(logs) {
+	log {
+		output file /var/log/caddy/{args[0]}.log {
+			roll_size 20MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+(security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		-Server
+	}
+}
+(security_next) {
+	# Next apps set their own per-route headers; only HSTS and Server removal here.
+	# (A header block that deletes a field is deferred and overwrites what a route set — choose per-path policies with matchers.)
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}
+(security_api) {
+	# CORS is answered by PostgREST (and GoTrue) themselves — never add Access-Control-Allow-Origin here, or browsers see two.
+	# storage-api answers none (hosted Supabase puts a gateway in front), so the storage route adds its own.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+}
+(spa) {
+	# a static single-page build: hashed assets cached for a year, the HTML never
+	root * {args[0]}
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	@html path / /index.html
+	header @html Cache-Control "no-cache"
+	try_files {path} /index.html
+	file_server
+}
+
+# ── app1 ────────────────────────────────────────────────────
+(app1_api) {
+	encode zstd gzip
+	request_body {
+		max_size 64MB
+	}
+	handle /healthz {
+		respond "ok" 200
+	}
+	handle_path /rest/v1/* {
+		reverse_proxy app1-rest:3000
+	}
+	handle_path /storage/v1/* {
+		# Only when a browser on another origin (or an app webview) calls storage directly. Auth is a bearer header,
+		# no cookies, so "*" is enough.
+		header ?Access-Control-Allow-Origin "*"
+		@preflight method OPTIONS
+		handle @preflight {
+			header Access-Control-Allow-Origin "*"
+			header Access-Control-Allow-Methods "GET, HEAD, POST, PUT, DELETE, OPTIONS"
+			header Access-Control-Allow-Headers "authorization, apikey, x-client-info, x-upsert, content-type, cache-control, range"
+			header Access-Control-Max-Age "86400"
+			respond 204
+		}
+		reverse_proxy app1-storage:5000
+	}
+	# With GoTrue (auth) in the stack, route it here and harden it at the edge (gotchas.md, "auth"):
+	# handle_path /auth/v1/* {
+	# 	# GoTrue may take its return address from a redirect_to header or the Referer — strip both on authorize
+	# 	@authorize path /authorize /user/identities/authorize
+	# 	request_header @authorize -Referer
+	# 	request_header @authorize -redirect_to
+	# 	# only the real return addresses pass (a loopback redirect_to passed GoTrue's allow list)
+	# 	@badreturn {
+	# 		path /authorize /user/identities/authorize
+	# 		expression `{http.request.uri.query.redirect_to} != "" && !{http.request.uri.query.redirect_to}.startsWith("https://app1.example.com/")`
+	# 	}
+	# 	respond @badreturn 400
+	# 	# PKCE only: without a code_challenge GoTrue answers with tokens in the URL fragment (implicit flow)
+	# 	@nopkce {
+	# 		path /authorize /user/identities/authorize
+	# 		expression `{http.request.uri.query.code_challenge} == ""`
+	# 	}
+	# 	respond @nopkce 400
+	# 	# routes the app never calls stay closed to the internet (extend the list; keep what your login screens use)
+	# 	@closed {
+	# 		not remote_ip private_ranges
+	# 		path /admin/* /invite /sso/* /saml/*
+	# 	}
+	# 	respond @closed 403
+	# 	reverse_proxy app1-auth:9999
+	# }
+	handle {
+		respond 404
+	}
+}
+api.app1.example.com {
+	import security_api
+	import logs api.app1
+	import app1_api
+}
+www.app1.example.com {
+	redir https://app1.example.com{uri} permanent
+}
+app1.example.com {
+	import security_next
+	import logs app1
+	# Streaming responses (ndjson, server-sent events): drop `encode` here and use
+	#   reverse_proxy app1-app:3000 { flush_interval -1 }
+	# — otherwise Caddy buffers the stream. Next compresses by itself anyway.
+	encode zstd gzip
+	request_body {
+		max_size 24MB
+	}
+	handle /healthz {
+		respond "ok" 200
+	}
+	# crons are called by the host on 127.0.0.1:<port> only (ops/cron-call.sh)
+	handle /api/cron/* {
+		respond 404
+	}
+	reverse_proxy app1-app:3000
+}
+# A static admin build served by Caddy itself (mount /srv/app1/www in edge/docker-compose.yml first):
+# admin.app1.example.com {
+# 	import security
+# 	import logs admin.app1
+# 	header X-Robots-Tag noindex
+# 	encode zstd gzip
+# 	handle /api/* {
+# 		reverse_proxy app1-admin:8081
+# 	}
+# 	handle {
+# 		import spa /srv/www/app1/admin
+# 	}
+# }

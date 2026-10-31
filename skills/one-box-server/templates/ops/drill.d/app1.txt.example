@@ -1,0 +1,6 @@
+# drill.d/<app>.txt — extra checks for restore-drill.sh, one per line: label|SQL that returns one value.
+# Run on the restored copy and on live; the drill prints both. Copy to drill.d/app1.txt and replace the examples.
+# Lines starting with # are skipped. Keep each query on one line.
+users|select count(*) from auth.users
+# paid net|select coalesce(sum(amount - coalesce(refunded, 0)), 0) from public.<payments table> where status = 'paid'
+# invariant mismatches (must be 0)|select count(*) from public.<table> where <condition that must never be true>

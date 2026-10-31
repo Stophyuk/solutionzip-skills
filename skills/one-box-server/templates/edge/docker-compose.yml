@@ -1,0 +1,26 @@
+# edge — one Caddy for every host on the box (TLS, routing, static files).
+# Copied to /srv/edge/docker-compose.yml and run there, so the project is `edge` and the container `edge-caddy-1`
+# (ops/caddy-apply.sh and ops/check.sh use those names):
+#   cp /srv/ops/edge/docker-compose.yml /srv/ops/edge/Caddyfile /srv/edge/ && cd /srv/edge && docker compose up -d
+# After that the Caddyfile changes only through ops/caddy-apply.sh.
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      # a single-file bind mount follows the inode: write this file in place (caddy-apply.sh), never replace it
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data:/data          # certificates and ACME account
+      - ./config:/config
+      - ./logs:/var/log/caddy
+      # static files Caddy serves itself (an SPA build, mail images), read-only:
+      # - /srv/app1/www:/srv/www/app1:ro
+    mem_limit: 128m
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+    networks:
+      edge:
+        # containers on `edge` reach the public API hosts through Caddy directly (real certificates, no hairpin NAT)
+        aliases: [api.app1.example.com]
+networks:
+  edge: { external: true }

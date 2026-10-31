@@ -1,0 +1,12 @@
+# /etc/cron.d/ops — installed by ops/prep.sh. Times are in the HOST time zone (ops.conf HOST_TZ): Ubuntu's cron
+# ignores CRON_TZ. No '%' in these lines — cron turns it into a newline; put anything with '%' inside a script.
+# nightly backup 03:17 (check.sh expects today's "backup ok" line after 04:00)
+17 3 * * * root /srv/ops/ops/backup.sh >> /srv/ops/backup.log 2>&1
+# access logs keep 30 days — Caddy files here, journald by its own config (ops/journald.conf)
+41 4 * * * root /srv/ops/ops/trim-logs.sh >> /srv/ops/trim.log 2>&1
+# hourly: disk · memory · OOM · containers · certificates · last night's backup · check.d/*.sh
+7 * * * * root /srv/ops/ops/check.sh 2>&1 | logger -t ops-check
+# nightly 05:23: docker build cache older than 48 h — builds run on this box, and on a busy deploy day the cache alone
+# took the disk to 80%. As the deploy user, under the deploy lock, so it never cuts a build in half (root cannot open
+# that user's /tmp/deploy.lock: fs.protected_regular=2).
+23 5 * * * ubuntu flock -w 900 /tmp/deploy.lock docker builder prune -f --filter until=48h 2>&1 | tail -1 | logger -t ops-builder-prune

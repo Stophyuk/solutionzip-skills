@@ -1,0 +1,166 @@
+# deploy/docker-compose.yml — one app's stack: Postgres (Supabase image) · PostgREST · storage-api · the Next app.
+# Always run through the wrapper:  dc app1 <args>   (fixes project name, directory /srv/app1, env file /srv/app1/.env)
+# Values come from /srv/app1/.env (ops/env-merge.sh) through `environment:` only — never `env_file:`, which would
+# hand the services the doubled `$$`.
+# Replace every app1 with the app's name from apps.conf. Image tags are the versions this was last run with — check
+# the current ones before a first install.
+x-logging: &logging
+  logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+services:
+  db:
+    image: supabase/postgres:17.6.1.136
+    <<: *logging
+    restart: unless-stopped
+    # sized for a small app sharing a 4 GB box with other stacks — raise them for a larger one
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - log_min_messages=fatal
+      - -c
+      - shared_buffers=96MB
+      - -c
+      - max_connections=60
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=48MB
+      - -c
+      - effective_cache_size=256MB
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: "5432"
+      POSTGRES_PORT: "5432"
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # read on the first start of an empty volume only — the keys must exist before that (bootstrap-keys.sh)
+      - ./repo/deploy/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ./repo/deploy/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
+    ports:
+      # for an SSH tunnel only (supabase db push --db-url …) — loopback, and a different port per app
+      - "127.0.0.1:5434:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 384m
+    networks: [internal]
+
+  rest:
+    image: postgrest/postgrest:v14.17
+    <<: *logging
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_DB_POOL: "10"
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
+      PGRST_LOG_LEVEL: error
+    mem_limit: 128m
+    networks:
+      internal: {}
+      # the alias is what Caddy proxies to — unique across every app on the box
+      edge: { aliases: [app1-rest] }
+
+  storage:
+    image: supabase/storage-api:v1.81.0
+    <<: *logging
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}/storage/v1
+      FILE_SIZE_LIMIT: "5242880"
+      UPLOAD_FILE_SIZE_LIMIT: "5242880"
+      UPLOAD_FILE_SIZE_LIMIT_STANDARD: "5242880"
+      # files on the local volume (storage_data, copied nightly by backup.sh)
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      STORAGE_FILE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: app1
+      # not used by the file backend — kept as they were in the running stack this template comes from
+      REGION: ap-northeast-2
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "false"
+      IMAGE_TRANSFORMATION_ENABLED: "false"
+      REQUEST_ALLOW_X_FORWARDED_PATH: "false"
+    volumes:
+      - storage_data:/var/lib/storage
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    mem_limit: 192m
+    networks:
+      internal: {}
+      edge: { aliases: [app1-storage] }
+
+  app:
+    build:
+      context: ./repo
+      args:
+        # NEXT_PUBLIC_* are inlined at build time, so they are build args; secrets never are
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      # the fixed Server Actions key reaches the build as a BuildKit secret (Dockerfile), never as a layer
+      secrets: [actions_key]
+    image: app1/app:latest
+    <<: *logging
+    restart: unless-stopped
+    init: true
+    depends_on:
+      rest: { condition: service_started }
+      storage: { condition: service_healthy }
+    # `dc app1 up -d --wait app` (deploy.sh) waits for the image's HEALTHCHECK — without one it returns at "running"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SECRET_KEY: ${SERVICE_ROLE_KEY}
+      CRON_SECRET: ${CRON_SECRET}
+      # keys pushed from your machine (.env.pushed, deploy/env-push.sh) — one line each; `:-` lets a missing one be empty
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    ports:
+      - "127.0.0.1:3010:3000"   # where host cron calls the app — the port column of apps.conf
+    mem_limit: 768m
+    networks:
+      edge: { aliases: [app1-app] }
+
+secrets:
+  actions_key:
+    environment: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+
+volumes:
+  db_data: {}
+  storage_data: {}
+
+networks:
+  internal: {}
+  edge:
+    external: true

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# check.d/<app>.sh — app-specific hourly checks, run by check.sh with ALERT set to the alert command.
+#
+#   cp check.d/app1.sh.example check.d/app1.sh && chmod +x check.d/app1.sh     # then keep only what fits the app
+#   sudo ALERT=echo /srv/ops/ops/check.d/app1.sh                             # try it without mailing
+#
+# Read-only: never write to the database here. Each alert key must be unique on the box (prefix it with the app).
+set -uo pipefail
+A=${ALERT:-/srv/ops/ops/alert.sh}
+app=app1
+
+# 1. A daily cron that must have succeeded within 26 h. cron-call.sh logs "<path> <code> …" under tag cron-<app>.
+#    No `grep -q` after a pipe: it exits at the first match, the writer dies of SIGPIPE and pipefail turns the found
+#    line into a failure — that once mailed a false "cron not succeeding" every hour. `grep … >/dev/null` reads to the end.
+journalctl -t "cron-$app" --since -26h -q -o cat 2>/dev/null | grep '^/api/cron/daily 2' >/dev/null \
+  || "$A" "$app-daily" "[$app] 일일 크론이 26시간 넘게 성공하지 않음" "$(journalctl -t "cron-$app" -n 5 -q -o cat 2>/dev/null)"
+
+# 2. Queries against the live database (skipped while the db container is down).
+q() { docker exec "$app-db-1" psql -U postgres -d postgres -qAt -c "$1" </dev/null 2>/dev/null; }
+if docker ps --format '{{.Names}}' | grep -x "$app-db-1" >/dev/null; then
+  # An invariant: a query that counts the rows breaking it (0 = fine). Replace with the app's own rule, e.g. a stored
+  # balance that must equal the sum of its ledger rows. Restore drills run the same query (ops/drill.d/<app>.txt).
+  # drift=$(q "select count(*) from public.<table> where <condition that must never be true>")
+  # [ -n "$drift" ] && [ "$drift" != 0 ] && "$A" "$app-invariant" "[$app] 데이터 규칙이 깨진 행 ${drift}개" "<what to look at>"
+
+  # Sign-ups in the last hour above normal: abuse, or a mail quota about to run out (needs auth in the stack).
+  signups=$(q "select count(*) from auth.users where created_at > now() - interval '1 hour'")
+  [ -n "$signups" ] && [ "$signups" -gt "${SIGNUP_MAX:-20}" ] && "$A" "$app-signups" "[$app] 지난 1시간 가입 ${signups}명" "가입 남용일 수 있습니다 — 가입 메일 한도와 captcha 를 검토하세요."
+fi
+
+# 3. Error lines the app itself logs (here: tagged lines from the app container in the last hour).
+errs=$(docker logs --since 1h "$app-app-1" 2>&1 | grep -E '\[(billing|webhook)\][^"]*(failed|mismatch)' | tail -5 || true)
+[ -n "$errs" ] && "$A" "$app-app-errors" "[$app] 결제 · 웹훅 오류 로그" "$errs"
+exit 0

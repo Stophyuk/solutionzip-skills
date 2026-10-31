@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "required": ["label", "reply"],
+  "properties": {
+    "label": { "enum": ["question", "request", "complaint", "other"] },
+    "reply": { "type": "string", "minLength": 1, "maxLength": 120 }
+  },
+  "additionalProperties": false
+}

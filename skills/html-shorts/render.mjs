@@ -109,6 +109,30 @@ const unsafe = await page.evaluate(() => {
 });
 for (const u of unsafe) console.log(`! ${u}`);
 
+// Frame 0 is the feed preview and the cover is the profile grid tile — both must show readable text.
+// Counts characters whose element is visible and not faded out (opacity through every ancestor).
+const readable = (t) =>
+  page.evaluate((x) => {
+    window.seek(x);
+    let n = 0;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode.textContent.trim();
+      const el = walker.currentNode.parentElement;
+      if (!text || el.closest("[data-ignore]")) continue;
+      let alpha = 1;
+      for (let e = el; e && alpha > 0.5; e = e.parentElement) alpha *= Number(getComputedStyle(e).opacity);
+      if (alpha <= 0.5 || getComputedStyle(el).visibility === "hidden") continue;
+      const r = el.getBoundingClientRect();
+      if (r.width && r.height && r.bottom > 0 && r.top < 1920 && r.right > 0 && r.left < 1080) n += text.length;
+    }
+    return n;
+  }, t);
+for (const [t, what] of [[0, "0초 화면(피드 미리보기)"], [info.cover, `표지(${info.cover}초)`]]) {
+  const n = await readable(t);
+  if (n < 4) console.log(`! ${what}에 보이는 글자가 ${n}자 — 빈 화면으로 보인다. 첫 장면 글자는 나타나는 애니메이션 없이 처음부터 보이게`);
+}
+
 async function frame(t, opts) {
   await page.evaluate((x) => window.seek(x), t);
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));

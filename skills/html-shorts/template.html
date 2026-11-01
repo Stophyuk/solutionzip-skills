@@ -42,21 +42,25 @@
   @keyframes rise { from { opacity: 0; transform: translateY(48px); } to { opacity: 1; transform: none; } }
   @keyframes pop { 0% { opacity: 0; transform: scale(.85); } 70% { opacity: 1; transform: scale(1.04); } 100% { opacity: 1; transform: none; } }
   @keyframes type { from { max-width: 0; } to { max-width: 100%; } }
+  /* moves but never hides — for the first scene */
+  @keyframes drift { from { transform: translateY(20px); } to { transform: none; } }
   .rise { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
   .pop { animation: pop .5s ease-out both; }
+  .drift { animation: drift 1.2s cubic-bezier(.2,.8,.2,1) both; }
 </style>
 </head>
 <body>
 <main data-duration="13" data-cover="1.2">
   <div class="bar"></div>
 
-  <!-- 0–3s · the hook: a question someone answers in their head -->
+  <!-- 0–3s · the hook: a question someone answers in their head.
+       Frame 0 is the feed preview, so the hook is fully readable at 0s: no fade-in here, only a drift. -->
   <section class="scene" data-start="0" data-end="3">
-    <div class="label rise" style="animation-delay:0s">클로드 스킬</div>
-    <div class="big">
-      <div class="rise" style="animation-delay:0s">카드뉴스,</div>
-      <div class="rise" style="animation-delay:.15s">아직 <mark>디자인 툴</mark>로</div>
-      <div class="rise" style="animation-delay:.3s">만드세요?</div>
+    <div class="label">클로드 스킬</div>
+    <div class="big drift">
+      <div>카드뉴스,</div>
+      <div>아직 <mark>디자인 툴</mark>로</div>
+      <div>만드세요?</div>
     </div>
   </section>
 

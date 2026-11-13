@@ -2,7 +2,7 @@
 
 [한국어](README.md) · English
 
-When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into ten skills.
+When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into eleven skills.
 
 ![Five example card-news slides](skills/card-news/examples/_all.png)
 
@@ -16,6 +16,7 @@ When you work with Claude Code, you end up explaining the same things every sess
 |---|---|
 | [`card-news`](skills/card-news) | Lays out card news in one HTML file, shoots each card as a PNG, then checks for what breaks on a phone |
 | [`html-shorts`](skills/html-shorts) | Shoots HTML scenes frame by frame into a 1080×1920 vertical video and a cover image |
+| [`app-intro-kit`](skills/app-intro-kit) | Reads your project to fill in the entry sheet for solutionzip's "Vibe Coding World Cup" (concept, whose problem, how it is solved), checks the character limits, then shoots one screen and finds the logo. If you want more, it bakes an intro deck (one self-contained 16:9 HTML file, a PDF, a 30–60 second video) |
 
 **Check**
 
@@ -37,19 +38,19 @@ When you work with Claude Code, you end up explaining the same things every sess
 
 ## Install
 
-You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, page-shots, anti-slop) need Chrome and Playwright, and the shorts skill also needs ffmpeg.
+You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, app-intro-kit, page-shots, anti-slop) need Chrome and Playwright, and the ones that make video (html-shorts, app-intro-kit) also need ffmpeg.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git
 cd solutionzip-skills
-npm i                      # just playwright
+npm i                      # playwright and subset-font (font trimming)
 
 # copy only the skills you want into Claude Code
 mkdir -p ~/.claude/skills
 cp -r skills/card-news skills/page-shots ~/.claude/skills/
 ```
 
-Then just ask: "make card news about …", "check whether this app is safe to make public", "capture every page", "add KakaoTalk notifications". Claude first shows what it will do, one line per step, and goes ahead once you agree.
+Then just ask: "make card news about …", "make an intro deck for my app", "check whether this app is safe to make public", "capture every page", "add KakaoTalk notifications". Claude first shows what it will do, one line per step, and goes ahead once you agree.
 
 ## What the skills hold to
 
@@ -59,7 +60,7 @@ Then just ask: "make card news about …", "check whether this app is safe to ma
 - Taking part is never made a condition, as in "follow us to get it" (Meta's spam policy).
 - Realistic AI-made images and voices get the AI label switched on when they are posted.
 
-Checklists: [card news](skills/card-news/checklist.md) · [shorts](skills/html-shorts/checklist.md) · [app checkup](skills/vibe-app-checkup/checklist.md) · [AI look](skills/anti-slop/checklist.md) · [copy](skills/ko-copy-lint/rules.md)
+Checklists: [card news](skills/card-news/checklist.md) · [shorts](skills/html-shorts/checklist.md) · [app intro](skills/app-intro-kit/checklist.md) · [app checkup](skills/vibe-app-checkup/checklist.md) · [AI look](skills/anti-slop/checklist.md) · [copy](skills/ko-copy-lint/rules.md)
 
 ## Stuck on a project?
 

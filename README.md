@@ -2,7 +2,7 @@
 
 한국어 · [English](README.en.md)
 
-클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열 개로 떼어 냈습니다.
+클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열한 개로 떼어 냈습니다.
 
 ![카드뉴스 예시 다섯 장](skills/card-news/examples/_all.png)
 
@@ -14,6 +14,7 @@
 |---|---|
 | [`card-news`](skills/card-news) | HTML 한 장으로 카드뉴스를 짜고 카드마다 PNG로 찍은 뒤, 폰에서 깨지는 곳을 검사 |
 | [`html-shorts`](skills/html-shorts) | HTML 장면을 프레임마다 찍어 1080×1920 세로 영상과 표지로 |
+| [`app-intro-kit`](skills/app-intro-kit) | 프로젝트를 읽어 문제해결집 '바이브코딩 월드컵' 출품 양식(컨셉 · 누구의 어떤 문제 · 어떻게 푸나)을 채우고 글자 수를 검사한 뒤, 화면 한 장과 로고를 챙긴다. 원하면 소개 자료(16:9 HTML 한 파일 · PDF · 30~60초 영상)까지 |
 
 **점검**
 
@@ -35,19 +36,19 @@
 
 ## 설치
 
-필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · page-shots · anti-slop)은 크롬과 playwright, 숏폼은 ffmpeg.
+필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · app-intro-kit · page-shots · anti-slop)은 크롬과 playwright, 영상을 만드는 스킬(html-shorts · app-intro-kit)은 ffmpeg.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git
 cd solutionzip-skills
-npm i                      # playwright 하나
+npm i                      # playwright · subset-font(글꼴 줄이기)
 
 # 쓰고 싶은 스킬만 클로드 코드에 넣기
 mkdir -p ~/.claude/skills
 cp -r skills/card-news skills/page-shots ~/.claude/skills/
 ```
 
-넣은 뒤에는 말로 부르면 됩니다. "카드뉴스 만들어줘: 주제", "이 앱 공개해도 되는지 점검해줘", "전 페이지 캡처해줘", "카톡 알림 달아줘". 클로드가 무엇을 할지 먼저 한 줄씩 보여 주고, 좋다고 하면 진행합니다.
+넣은 뒤에는 말로 부르면 됩니다. "카드뉴스 만들어줘: 주제", "내 앱 소개 자료 만들어줘", "이 앱 공개해도 되는지 점검해줘", "전 페이지 캡처해줘", "카톡 알림 달아줘". 클로드가 무엇을 할지 먼저 한 줄씩 보여 주고, 좋다고 하면 진행합니다.
 
 ## 지키는 것
 
@@ -57,7 +58,7 @@ cp -r skills/card-news skills/page-shots ~/.claude/skills/
 - "팔로우하면 드려요"처럼 참여를 조건으로 걸지 않습니다(메타 스팸 정책).
 - AI로 만든 사실적인 이미지 · 목소리는 올릴 때 AI 표시를 켭니다.
 
-점검표: [카드뉴스](skills/card-news/checklist.md) · [숏폼](skills/html-shorts/checklist.md) · [앱 점검](skills/vibe-app-checkup/checklist.md) · [AI 티](skills/anti-slop/checklist.md) · [카피](skills/ko-copy-lint/rules.md)
+점검표: [카드뉴스](skills/card-news/checklist.md) · [숏폼](skills/html-shorts/checklist.md) · [앱 소개 자료](skills/app-intro-kit/checklist.md) · [앱 점검](skills/vibe-app-checkup/checklist.md) · [AI 티](skills/anti-slop/checklist.md) · [카피](skills/ko-copy-lint/rules.md)
 
 ## 만들다 막힌 프로젝트가 있다면
 

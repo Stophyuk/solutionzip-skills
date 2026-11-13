@@ -2,7 +2,7 @@
 
 한국어 · [English](README.en.md)
 
-클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열네 개로 떼어 냈습니다.
+클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열다섯 개로 떼어 냈습니다.
 
 ![카드뉴스 예시 다섯 장](skills/card-news/examples/_all.png)
 
@@ -25,6 +25,7 @@
 | [`page-shots`](skills/page-shots) | 모든 페이지를 PC · 폰 폭으로 찍고, 가로로 밀리는 페이지 · 404 · 깨진 그림을 잡는다 |
 | [`ko-copy-lint`](skills/ko-copy-lint) | 한국어 문구의 과장(최고 · 100% · 보장) · 상투어 · 금지어를 찾아 고칠 문장을 제안한다 |
 | [`ai-before-after`](skills/ai-before-after) | 프롬프트 · 모델을 바꾸기 전과 후를 같은 표본으로 돌려 표로 견준다 |
+| [`secret-guard`](skills/secret-guard) | 입력창에 붙여 넣는 키 · 비밀번호를 보내기 전에 막고, 이미 쌓인 입력 기록 · 세션 기록의 비밀값을 가린다 |
 
 **일하는 틀**
 
@@ -39,7 +40,7 @@
 
 ## 설치
 
-필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · app-intro-kit · page-shots · anti-slop)은 크롬과 playwright, 영상을 만드는 스킬(html-shorts · app-intro-kit)은 ffmpeg, harness-tune은 python3.
+필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · app-intro-kit · page-shots · anti-slop)은 크롬과 playwright, 영상을 만드는 스킬(html-shorts · app-intro-kit)은 ffmpeg, secret-guard · harness-tune은 python3.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git

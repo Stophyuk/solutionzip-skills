@@ -2,7 +2,7 @@
 
 [한국어](README.md) · English
 
-When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into fourteen skills.
+When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into fifteen skills.
 
 ![Five example card-news slides](skills/card-news/examples/_all.png)
 
@@ -27,6 +27,7 @@ When you work with Claude Code, you end up explaining the same things every sess
 | [`page-shots`](skills/page-shots) | Shoots every page at desktop and phone width, and catches pages that scroll sideways, 404s and broken images |
 | [`ko-copy-lint`](skills/ko-copy-lint) | Finds exaggeration (최고 · 100% · 보장), clichés and banned words in Korean copy and suggests sentences to use instead |
 | [`ai-before-after`](skills/ai-before-after) | Runs the same samples before and after a prompt or model change and compares them in a table |
+| [`secret-guard`](skills/secret-guard) | Blocks API keys and passwords pasted into the prompt before they are sent, and masks secrets already left in your prompt history and session logs |
 
 **Ways of working**
 
@@ -41,7 +42,7 @@ When you work with Claude Code, you end up explaining the same things every sess
 
 ## Install
 
-You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, app-intro-kit, page-shots, anti-slop) need Chrome and Playwright, the ones that make video (html-shorts, app-intro-kit) also need ffmpeg, and harness-tune needs Python 3.
+You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, app-intro-kit, page-shots, anti-slop) need Chrome and Playwright, the ones that make video (html-shorts, app-intro-kit) also need ffmpeg, and secret-guard and harness-tune need Python 3.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git

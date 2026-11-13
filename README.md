@@ -2,7 +2,7 @@
 
 한국어 · [English](README.en.md)
 
-클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열한 개로 떼어 냈습니다.
+클로드 코드로 일하다 보면 같은 설명을 세션마다 다시 하게 됩니다. 카드뉴스를 찍는 법, 배포 전에 볼 것, 서버에서 하면 안 되는 일 같은 것들입니다. [문제해결집](https://solutionzip.kr)이 실제로 쓰는 방식을 스킬 열네 개로 떼어 냈습니다.
 
 ![카드뉴스 예시 다섯 장](skills/card-news/examples/_all.png)
 
@@ -33,10 +33,13 @@
 | [`solo-dev-kit`](skills/solo-dev-kit) | 세션 시작 요약 · 푸시 전 검사 · 작업 기록(`/record`)을 프로젝트에 깐다 |
 | [`kakao-notify`](skills/kakao-notify) | 긴 작업이 끝나거나 허락을 기다릴 때 카톡 '나와의 채팅'으로 알린다(맥) |
 | [`one-box-server`](skills/one-box-server) | 서버 한 대에 앱 여러 개와 DB를 올리고 배포 · 백업 · 복구 연습 · 되돌리기를 굴린다 |
+| [`new-project`](skills/new-project) | 새 프로젝트를 시작할 때 폴더 · git · CLAUDE.md 뼈대부터 만들고 그 폴더에서 새 세션으로 잇게 한다 |
+| [`harness-tune`](skills/harness-tune) | 한 달에 한 번 부르면 세션 기록을 집계해 CLAUDE.md · 메모리 · 훅 · 플러그인에서 고칠 것을 보고하고, 승인한 것만 고친다. 전후는 기록 파일 하나에 쌓는다 |
+| [`fresh-review`](skills/fresh-review) | 밖으로 나가는 문서를 앞 대화를 모르는 검토 에이전트에게 맡겨 숫자와 주장을 원자료와 대조한다 |
 
 ## 설치
 
-필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · app-intro-kit · page-shots · anti-slop)은 크롬과 playwright, 영상을 만드는 스킬(html-shorts · app-intro-kit)은 ffmpeg.
+필요한 것: Node 18 이상. 화면을 찍는 스킬(card-news · html-shorts · app-intro-kit · page-shots · anti-slop)은 크롬과 playwright, 영상을 만드는 스킬(html-shorts · app-intro-kit)은 ffmpeg, harness-tune은 python3.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git

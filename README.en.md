@@ -2,7 +2,7 @@
 
 [한국어](README.md) · English
 
-When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into eleven skills.
+When you work with Claude Code, you end up explaining the same things every session: how to shoot card news, what to check before a deploy, what never to do on a server. These are the ways [solutionzip](https://solutionzip.kr) (문제해결집) actually works, split into fourteen skills.
 
 ![Five example card-news slides](skills/card-news/examples/_all.png)
 
@@ -35,10 +35,13 @@ When you work with Claude Code, you end up explaining the same things every sess
 | [`solo-dev-kit`](skills/solo-dev-kit) | Sets up a session-start summary, a pre-push check and a work log (`/record`) in your project |
 | [`kakao-notify`](skills/kakao-notify) | Messages your KakaoTalk "chat with myself" when a long task ends or Claude is waiting for permission (macOS) |
 | [`one-box-server`](skills/one-box-server) | Runs several apps and their databases on one server, with deploys, backups, restore drills and rollbacks |
+| [`new-project`](skills/new-project) | Starts a new project with a folder, git and a CLAUDE.md skeleton first, then has you continue in a fresh session opened in that folder |
+| [`harness-tune`](skills/harness-tune) | Call it once a month: it tallies your session logs, reports what to tune in CLAUDE.md, memory, hooks and plugins, changes only what you approve, and keeps a before/after log in one file |
+| [`fresh-review`](skills/fresh-review) | Hands outgoing documents to a review agent that has not seen the conversation, to check numbers and claims against the sources |
 
 ## Install
 
-You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, app-intro-kit, page-shots, anti-slop) need Chrome and Playwright, and the ones that make video (html-shorts, app-intro-kit) also need ffmpeg.
+You need Node 18 or later. The skills that take screenshots (card-news, html-shorts, app-intro-kit, page-shots, anti-slop) need Chrome and Playwright, the ones that make video (html-shorts, app-intro-kit) also need ffmpeg, and harness-tune needs Python 3.
 
 ```sh
 git clone https://github.com/Stophyuk/solutionzip-skills.git
